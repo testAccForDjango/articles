@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <main>
+        <section class="py-5 text-center container">
+            <div class="row py-lg-5">
+                <div class="col-lg-6 col-md-8 mx-auto">
+                    <h1 class="fw-light"><strong>Articles</strong></h1>
+                    {% if user.is_authenticated %}
+                        <p> Hello {{ user.get_username }}</p>
+                        <a href="{% url 'allArticles' user.get_username %}" class="btn btn-primary my-2">Go to your
+                            articles</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-primary my-2">Sign in</a>
+                        <a href="{% url 'registration' %}" class="btn btn-secondary my-2">Sign up</a>
+                    {% endif %}
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <div class="album">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+                {% if articles %}
+                    {% for article in articles %}
+                        <div class="col">
+                            <div class="card h-100" style="width: 18rem;">
+                                <div class="card-body">
+                                    <h5 class="card-title"><a href="{{ article.get_absolute_url }}">
+                                        <strong>{{ article.title|truncatechars:45 }}</strong> </a></h5>
+                                    <p class="card-text">{{ article.text|truncatechars:200 }}</p>
+                                </div>
+                                <div class="card-footer">
+                                    <small class="text-muted">
+                                        Author: <a
+                                            href="{% url 'allArticles' article.author %}">{{ article.author }}</a>
+                                        <br> Date: {{ article.date }}
+                                        <br> tags:
+                                        {% for tag in article.tags.all %}
+                                            {{ tag }}
+                                        {% endfor %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p> Articles does not exists </p>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+{% endblock content %}

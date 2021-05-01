@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% if article %}
+        <br>
+        <h2><p><strong>{{ article.title }}</strong></p></h2>
+        <p class="text-break">{{ article.text }}</p>
+        <br>
+        <p class="text-muted"> {% for tag in article.tags.all %} {{ tag }} {% endfor %}</p>
+    {% else %}
+        <p> Article does not exist </p>
+    {% endif %}
+{% endblock content %}
