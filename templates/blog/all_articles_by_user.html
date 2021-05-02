@@ -1,21 +1,21 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="row">
-        <div class="col"><br>
-            <h2><strong>All articles by {{ article_owner }}</strong></h2>
-        </div>
-        <div class="col"><br>
-            <div class="text-right">
-                {% if user.is_authenticated %}
-                    {% if user.get_username == article_owner %}
-                        <a href="{% url 'newArticle' %}" class="btn btn-primary">New article</a>
+    {% if articles %}
+        <div class="row">
+            <div class="col"><br>
+                <h2><strong>All articles by {{ articles_owner }}</strong></h2>
+            </div>
+            <div class="col"><br>
+                <div class="text-right">
+                    {% if user.is_authenticated %}
+                        {% if user.get_username == articles_owner %}
+                            <a href="{% url 'newArticle' %}" class="btn btn-primary">New article</a>
+                        {% endif %}
                     {% endif %}
-                {% endif %}
+                </div>
             </div>
         </div>
-    </div>
-    {% if articles %}
         <main>
             <div class="album">
                 <div class="container">
@@ -31,7 +31,7 @@
                                         <a href="{% url 'articleDetail' article.pk %}" class="btn btn-primary">View
                                             article</a>
                                         {% if user.is_authenticated %}
-                                            {% if user.get_username == article_owner %}
+                                            {% if user.get_username == articles_owner %}
                                                 <a href="{% url 'articleEdit' article.pk %}" class="btn btn-primary">Edit</a>
                                             {% endif %}
                                         {% endif %}
@@ -43,7 +43,5 @@
                 </div>
             </div>
         </main>
-    {% else %}
-        <h2>{{ article_owner }} has no articles</h2>
     {% endif %}
 {% endblock content %}

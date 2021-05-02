@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2><strong>{{ message }}</strong></h2>
-    {% if article %}
-        <br>
-        <h2><p><strong>{{ article.title }}</strong></p></h2>
-        <p class="text-break">{{ article.text }}</p>
-        <br>
-        <p class="text-muted"> {% for tag in article.tags.all %} {{ tag }} {% endfor %}</p>
+    {% if articles %}
+        {% for article in articles %}
+            <br>
+            <h2><p><strong>{{ article.title }}</strong></p></h2>
+            <p class="text-break">{{ article.text }}</p>
+            <br>
+            <p class="text-muted"> {% for tag in article.tags.all %} {{ tag }} {% endfor %}</p>
+        {% endfor %}
     {% endif %}
 {% endblock content %}

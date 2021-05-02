@@ -1,7 +1,7 @@
 import datetime
 
 from django.contrib.auth import authenticate, login
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.views.generic import TemplateView
 from .models import Article
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -14,8 +14,8 @@ class MainPageView(TemplateView):
     template_name = 'blog/main_page.html'
 
     def get(self, request):
-        context = {'articles': get_articles()}
-        return render(request, self.template_name, context)
+        articles = get_articles()
+        return render(request, self.template_name, get_context_from_articles(articles))
 
 
 class ArticleDetailView(TemplateView):
@@ -24,11 +24,7 @@ class ArticleDetailView(TemplateView):
 
     def get(self, request, pk):
         article = get_articles(pk=pk)
-        if not article:
-            context = {'message': 'Article does not exists'}
-            return render(request, self.template_name, context)
-        context = {'article': article}
-        return render(request, self.template_name, context)
+        return render(request, self.template_name, get_context_from_articles(article))
 
 
 class AllArticlesByUserView(TemplateView):
@@ -36,10 +32,9 @@ class AllArticlesByUserView(TemplateView):
     template_name = 'blog/all_articles_by_user.html'
 
     def get(self, request, slug):
-        context = {
-            'articles': get_articles(author__username=slug),
-            'article_owner': slug
-        }
+        articles = get_articles(author__username=slug)
+        context = get_context_from_articles(articles)
+        context.update({'articles_owner': slug})
         return render(request, self.template_name, context)
 
 
@@ -70,24 +65,22 @@ class ArticleEditView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, pk):
         article = get_articles(pk=pk)
-        if not article:
-            context = {'message': 'Article does not exists'}
-            return render(request, self.template_name, context)
+        context = get_context_from_articles(article)
+        if article:
+            if request.user != article[0].author:
+                context = {'message': 'You don\'t have permission for that'}
+                return render(request, self.template_name, context)
 
-        if request.user != article.author:
-            context = {'message': 'You don\'t have permission for that'}
-            return render(request, self.template_name, context)
-
-        form = ArticleForm(instance=article)
-        context = {
-            'form': form,
-            'message': 'Edit you article'
-        }
+            form = ArticleForm(instance=article[0])
+            context = {
+                'form': form,
+                'message': 'Edit you article'
+            }
         return render(request, self.template_name, context)
 
     def post(self, request, pk):
         article = get_articles(pk=pk)
-        form = ArticleForm(request.POST, instance=article)
+        form = ArticleForm(request.POST, instance=article[0])
         if form.is_valid():
             article = form.save(commit=False)
             article.date = datetime.datetime.now()
@@ -121,7 +114,13 @@ class RegistrationView(TemplateView):
 
 
 def get_articles(**kwargs):
-    article = Article.objects.filter(**kwargs)
-    if len(article) == 1:
-        return article[0]
-    return article
+    return Article.objects.filter(**kwargs)
+
+
+def get_context_from_articles(articles):
+    if not articles:
+        context = {'message': 'Article(s) does not exist(s)'}
+    else:
+        context = {'articles': articles}
+    return context
+
