@@ -49,14 +49,7 @@ class NewArticleView(LoginRequiredMixin, TemplateView):
 
     def post(self, request):
         form = ArticleForm(request.POST)
-        if form.is_valid():
-            article = form.save(commit=False)
-            article.author = request.user
-            article.date = datetime.datetime.now()
-            article.save()
-            form.save_m2m()
-            return redirect(article.get_absolute_url())
-        return redirect('allArticles')
+        create_or_update_article(form)
 
 
 class ArticleEditView(LoginRequiredMixin, TemplateView):
@@ -81,13 +74,7 @@ class ArticleEditView(LoginRequiredMixin, TemplateView):
     def post(self, request, pk):
         article = get_articles(pk=pk)
         form = ArticleForm(request.POST, instance=article[0])
-        if form.is_valid():
-            article = form.save(commit=False)
-            article.date = datetime.datetime.now()
-            article.save()
-            form.save_m2m()
-            return redirect(article.get_absolute_url())
-        return redirect('allArticles')
+        create_or_update_article(form)
 
 
 class RegistrationView(TemplateView):
@@ -124,3 +111,12 @@ def get_context_from_articles(articles):
         context = {'articles': articles}
     return context
 
+
+def create_or_update_article(form):
+    if form.is_valid():
+        article = form.save(commit=False)
+        article.date = datetime.datetime.now()
+        article.save()
+        form.save_m2m()
+        return redirect(article.get_absolute_url())
+    return redirect('allArticles')
