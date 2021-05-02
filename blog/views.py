@@ -14,27 +14,30 @@ class MainPageView(TemplateView):
     template_name = 'blog/main_page.html'
 
     def get(self, request):
-        context = {'articles': Article.objects.all()}
+        context = {'articles': get_articles()}
         return render(request, self.template_name, context)
 
 
 class ArticleDetailView(TemplateView):
-    """Full article"""
+    """Full text of the article"""
     template_name = 'blog/article_detail.html'
 
     def get(self, request, pk):
-        context = {'article': get_object_or_404(Article, pk=pk)}
+        article = get_articles(pk=pk)
+        if not article:
+            context = {'message': 'Article does not exists'}
+            return render(request, self.template_name, context)
+        context = {'article': article}
         return render(request, self.template_name, context)
 
 
 class AllArticlesByUserView(TemplateView):
     """All articles by user"""
-    model = Article
     template_name = 'blog/all_articles_by_user.html'
 
     def get(self, request, slug):
         context = {
-            'articles': self.model.objects.filter(author__username=slug),
+            'articles': get_articles(author__username=slug),
             'article_owner': slug
         }
         return render(request, self.template_name, context)
@@ -66,10 +69,15 @@ class ArticleEditView(LoginRequiredMixin, TemplateView):
     template_name = 'blog/article_edit.html'
 
     def get(self, request, pk):
-        article = get_object_or_404(Article, pk=pk)
+        article = get_articles(pk=pk)
+        if not article:
+            context = {'message': 'Article does not exists'}
+            return render(request, self.template_name, context)
+
         if request.user != article.author:
             context = {'message': 'You don\'t have permission for that'}
             return render(request, self.template_name, context)
+
         form = ArticleForm(instance=article)
         context = {
             'form': form,
@@ -78,7 +86,7 @@ class ArticleEditView(LoginRequiredMixin, TemplateView):
         return render(request, self.template_name, context)
 
     def post(self, request, pk):
-        article = get_object_or_404(Article, pk=pk)
+        article = get_articles(pk=pk)
         form = ArticleForm(request.POST, instance=article)
         if form.is_valid():
             article = form.save(commit=False)
@@ -110,3 +118,10 @@ class RegistrationView(TemplateView):
                 return redirect('mainPage')
         context = {'form': form}
         return render(request, self.template_name, context)
+
+
+def get_articles(**kwargs):
+    article = Article.objects.filter(**kwargs)
+    if len(article) == 1:
+        return article[0]
+    return article
