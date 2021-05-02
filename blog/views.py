@@ -44,12 +44,16 @@ class NewArticleView(LoginRequiredMixin, TemplateView):
 
     def get(self, request):
         form = ArticleForm
-        context = {'form': form}
+        context = {
+            'form': form,
+            'message': 'Create a new article'
+        }
         return render(request, self.template_name, context)
 
     def post(self, request):
         form = ArticleForm(request.POST)
-        create_or_update_article(form)
+        create_or_update_article(form=form, request=request)
+        return redirect('allArticles', slug=request.user)
 
 
 class ArticleEditView(LoginRequiredMixin, TemplateView):
@@ -63,7 +67,6 @@ class ArticleEditView(LoginRequiredMixin, TemplateView):
             if request.user != article[0].author:
                 context = {'message': 'You don\'t have permission for that'}
                 return render(request, self.template_name, context)
-
             form = ArticleForm(instance=article[0])
             context = {
                 'form': form,
@@ -74,7 +77,8 @@ class ArticleEditView(LoginRequiredMixin, TemplateView):
     def post(self, request, pk):
         article = get_articles(pk=pk)
         form = ArticleForm(request.POST, instance=article[0])
-        create_or_update_article(form)
+        create_or_update_article(form=form, request=request)
+        return redirect(article[0].get_absolute_url())
 
 
 class RegistrationView(TemplateView):
@@ -112,11 +116,10 @@ def get_context_from_articles(articles):
     return context
 
 
-def create_or_update_article(form):
+def create_or_update_article(form, request):
     if form.is_valid():
         article = form.save(commit=False)
+        article.author = request.user
         article.date = datetime.datetime.now()
         article.save()
         form.save_m2m()
-        return redirect(article.get_absolute_url())
-    return redirect('allArticles')

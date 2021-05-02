@@ -1,21 +1,24 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    {% if articles %}
-        <div class="row">
+
+    <div class="row">
+        {% if articles %}
             <div class="col"><br>
                 <h2><strong>All articles by {{ articles_owner }}</strong></h2>
             </div>
-            <div class="col"><br>
-                <div class="text-right">
-                    {% if user.is_authenticated %}
-                        {% if user.get_username == articles_owner %}
-                            <a href="{% url 'newArticle' %}" class="btn btn-primary">New article</a>
-                        {% endif %}
+        {% endif %}
+        <div class="col"><br>
+            <div class="text-right">
+                {% if user.is_authenticated %}
+                    {% if user.get_username == articles_owner %}
+                        <a href="{% url 'newArticle' %}" class="btn btn-primary">New article</a>
                     {% endif %}
-                </div>
+                {% endif %}
             </div>
         </div>
+    </div>
+    {% if articles %}
         <main>
             <div class="album">
                 <div class="container">
