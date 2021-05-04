@@ -1,12 +1,10 @@
-import datetime
-
 from django.contrib.auth import authenticate, login
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
-from .models import Article
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import ArticleForm, RegistrationForm
-from django.shortcuts import redirect
+
+from .services import get_articles, get_context_from_articles, create_or_update_article
 
 
 class MainPageView(TemplateView):
@@ -52,7 +50,8 @@ class NewArticleView(LoginRequiredMixin, TemplateView):
 
     def post(self, request):
         form = ArticleForm(request.POST)
-        create_or_update_article(form=form, request=request)
+        if form.is_valid():
+            create_or_update_article(form=form, request=request)
         return redirect('allArticles', slug=request.user)
 
 
@@ -61,23 +60,25 @@ class ArticleEditView(LoginRequiredMixin, TemplateView):
     template_name = 'blog/article_edit.html'
 
     def get(self, request, pk):
-        article = get_articles(pk=pk)
-        context = get_context_from_articles(article)
+        article = get_articles(pk=pk)[0]
         if article:
-            if request.user != article[0].author:
+            if request.user != article.author and not request.user.is_staff:
                 context = {'message': 'You don\'t have permission for that'}
                 return render(request, self.template_name, context)
-            form = ArticleForm(instance=article[0])
+            form = ArticleForm(instance=article)
             context = {
                 'form': form,
                 'message': 'Edit you article'
             }
+        else:
+            context = get_context_from_articles(article)
         return render(request, self.template_name, context)
 
     def post(self, request, pk):
         article = get_articles(pk=pk)
         form = ArticleForm(request.POST, instance=article[0])
-        create_or_update_article(form=form, request=request)
+        if form.is_valid():
+            create_or_update_article(form=form, request=request)
         return redirect(article[0].get_absolute_url())
 
 
@@ -102,24 +103,3 @@ class RegistrationView(TemplateView):
                 return redirect('mainPage')
         context = {'form': form}
         return render(request, self.template_name, context)
-
-
-def get_articles(**kwargs):
-    return Article.objects.filter(**kwargs)
-
-
-def get_context_from_articles(articles):
-    if not articles:
-        context = {'message': 'Article(s) does not exist(s)'}
-    else:
-        context = {'articles': articles}
-    return context
-
-
-def create_or_update_article(form, request):
-    if form.is_valid():
-        article = form.save(commit=False)
-        article.author = request.user
-        article.date = datetime.datetime.now()
-        article.save()
-        form.save_m2m()

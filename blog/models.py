@@ -19,10 +19,18 @@ class Article(models.Model):
     def get_absolute_url(self):
         return reverse("articleDetail", kwargs={'pk': self.pk})
 
+    class Meta:
+        verbose_name = "Article"
+        verbose_name_plural = "Articles"
+
 
 class Tag(models.Model):
     """Tag for article"""
-    tag = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, verbose_name="Tag name")
 
     def __str__(self):
-        return self.tag
+        return self.name
+
+    class Meta:
+        verbose_name = "Tag"
+        verbose_name_plural = "Tags"

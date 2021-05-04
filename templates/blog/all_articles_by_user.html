@@ -34,7 +34,7 @@
                                         <a href="{% url 'articleDetail' article.pk %}" class="btn btn-primary">View
                                             article</a>
                                         {% if user.is_authenticated %}
-                                            {% if user.get_username == articles_owner %}
+                                            {% if user.get_username == articles_owner or user.is_staff %}
                                                 <a href="{% url 'articleEdit' article.pk %}" class="btn btn-primary">Edit</a>
                                             {% endif %}
                                         {% endif %}
