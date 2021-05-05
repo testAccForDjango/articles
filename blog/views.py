@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import ArticleForm, RegistrationForm
 
-from .services import get_articles, get_context_from_articles, create_or_update_article
+from .services import get_articles, get_context_from_articles, create_or_update_article, delete_article
 
 
 class MainPageView(TemplateView):
@@ -75,11 +75,39 @@ class ArticleEditView(LoginRequiredMixin, TemplateView):
         return render(request, self.template_name, context)
 
     def post(self, request, pk):
-        article = get_articles(pk=pk)
-        form = ArticleForm(request.POST, instance=article[0])
+        article = get_articles(pk=pk)[0]
+        form = ArticleForm(request.POST, instance=article)
         if form.is_valid():
             create_or_update_article(form=form, request=request)
-        return redirect(article[0].get_absolute_url())
+        return redirect(article.get_absolute_url())
+
+
+class DeleteArticleView(LoginRequiredMixin, TemplateView):
+    """Delete article"""
+    template_name = 'blog/article_delete.html'
+
+    def get(self, request, pk):
+        article = get_articles(pk=pk)[0]
+        if article:
+            if request.user != article.author and not request.user.is_staff:
+                context = {
+                    'success': False,
+                    'message': 'You don\'t have permission for that'
+                }
+                return render(request, self.template_name, context)
+            context = {
+                'success': True,
+                'message': f'Are you sure you want to delete {article.title}'
+            }
+        else:
+            context = get_context_from_articles(article)
+        return render(request, self.template_name, context)
+
+
+    def post(self, request, pk):
+        article = get_articles(pk=pk)[0]
+        delete_article(article)
+        return redirect('allArticles', slug=request.user)
 
 
 class RegistrationView(TemplateView):

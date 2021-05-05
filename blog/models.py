@@ -1,5 +1,3 @@
-import datetime
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -11,7 +9,8 @@ class Article(models.Model):
     text = models.TextField()
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     tags = models.ManyToManyField('Tag', blank=True)
-    date = models.DateTimeField(default=datetime.datetime.now)
+    create_date = models.DateTimeField(auto_now_add=True)
+    change_date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
