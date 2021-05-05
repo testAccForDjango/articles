@@ -106,7 +106,7 @@ class DeleteArticleView(LoginRequiredMixin, TemplateView):
     def post(self, request, pk):
         article = get_articles(pk=pk)[0]
         delete_article(article)
-        return redirect('allArticlesByUser', slug=request.user)
+        return redirect('allArticlesByUser', slug=article.author)
 
 
 class UserRegistrationView(TemplateView):
