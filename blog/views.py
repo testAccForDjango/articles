@@ -52,10 +52,10 @@ class NewArticleView(LoginRequiredMixin, TemplateView):
         form = ArticleForm(request.POST)
         if form.is_valid():
             create_or_update_article(form=form, request=request)
-        return redirect('allArticles', slug=request.user)
+        return redirect('allArticlesByUser', slug=request.user)
 
 
-class ArticleEditView(LoginRequiredMixin, TemplateView):
+class EditArticleView(LoginRequiredMixin, TemplateView):
     """Edit article"""
     template_name = 'blog/article_edit.html'
 
@@ -103,14 +103,13 @@ class DeleteArticleView(LoginRequiredMixin, TemplateView):
             context = get_context_from_articles(article)
         return render(request, self.template_name, context)
 
-
     def post(self, request, pk):
         article = get_articles(pk=pk)[0]
         delete_article(article)
-        return redirect('allArticles', slug=request.user)
+        return redirect('allArticlesByUser', slug=request.user)
 
 
-class RegistrationView(TemplateView):
+class UserRegistrationView(TemplateView):
     """New user registration"""
     template_name = 'registration/registration.html'
 
